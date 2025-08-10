@@ -59,6 +59,16 @@ app.post("/add-user-image", async (req, res) => {
         const db = await dbPromise;
         let user = await db.get(`SELECT * FROM users WHERE user_id = ?`, [userId]);
 
+        // Check if image already exists for this user
+        const existingImage = await db.get(
+            `SELECT * FROM user_images WHERE userimage_id = ? AND user_id = ?`,
+            [image.userimage_id, userId]
+        );
+        if (existingImage) {
+            // Image already exists, skip insert and return success
+            return res.json({ success: true, message: "User image already exists." });
+        }
+
         if (!user) {
             await db.run(
                 `INSERT INTO users (user_id, userImageIds, pinnedArtworkIds) VALUES (?, ?, ?)`,
