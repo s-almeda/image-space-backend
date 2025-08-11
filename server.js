@@ -13,8 +13,6 @@ const port = process.env.PORT || 3001;
 
 // Root route: show all users, user_images, pinned_artworks
 // Serve the dashboard HTML
-app.use(express.static('.')); // Serve static files from current directory
-
 // Root route: redirect to dashboard
 app.get("/", (req, res) => {
     res.redirect('index.html');
