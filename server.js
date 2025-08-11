@@ -1,3 +1,5 @@
+// server.js -- for logging.storing the user data while using artographer
+
 import express from "express";
 import cors from "cors";
 import dbPromise from "./database.js";
@@ -9,7 +11,16 @@ app.use(express.json({ limit: "500mb" }));
 const port = process.env.PORT || 3001;
 
 // Root route: show all users, user_images, pinned_artworks
-app.get("/", async (req, res) => {
+// Serve the dashboard HTML
+app.use(express.static('.')); // Serve static files from current directory
+
+// Root route: redirect to dashboard
+app.get("/", (req, res) => {
+    res.redirect('index.html');
+});
+
+// API data endpoint for the dashboard
+app.get("/api-data", async (req, res) => {
     try {
         const db = await dbPromise;
         const users = await db.all("SELECT * FROM users");
@@ -19,10 +30,9 @@ app.get("/", async (req, res) => {
         res.json({ users, userImages, pinnedArtworks });
     } catch (err) {
         console.error("Error fetching data:", err);
-        res.status(500).json({ error: "Failed to fetch data" });
+        res.status(500).json({ error: err.message });
     }
 });
-
 /**
  * Add user
  */
