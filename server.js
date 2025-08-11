@@ -7,6 +7,7 @@ import dbPromise from "./database.js";
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "500mb" }));
+app.use(express.static('public'));
 
 const port = process.env.PORT || 3001;
 
