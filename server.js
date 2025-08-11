@@ -240,12 +240,29 @@ app.get("/get-user/:id", async (req, res) => {
         const images = await db.all(`SELECT * FROM user_images WHERE user_id = ? ORDER BY dateAdded DESC`, [userId]);
         const pins = await db.all(`SELECT * FROM pinned_artworks WHERE user_id = ? ORDER BY pinnedAt DESC`, [userId]);
 
+        // Parse JSON fields for images
+        const parsedImages = images.map(img => ({
+            ...img,
+            worldCoords: JSON.parse(img.worldCoords || '[]'),
+            anchors: JSON.parse(img.anchors || '[]')
+        }));
+
+        // Parse JSON fields for pins
+        const parsedPins = pins.map(pin => ({
+            ...pin,
+            image_urls: JSON.parse(pin.image_urls || '{}'),
+            descriptions: JSON.parse(pin.descriptions || '{}'),
+            artist_names: JSON.parse(pin.artist_names || '[]'),
+            keywords: JSON.parse(pin.keywords || '[]'),
+            worldCoords: JSON.parse(pin.worldCoords || '[]')
+        }));
+
         res.json({
             ...user,
             userImageIds: JSON.parse(user.userImageIds || "[]"),
             pinnedArtworkIds: JSON.parse(user.pinnedArtworkIds || "[]"),
-            userImages: images,
-            pinnedArtworks: pins,
+            userImages: parsedImages,
+            pinnedArtworks: parsedPins,
         });
     } catch (err) {
         console.error(err);
