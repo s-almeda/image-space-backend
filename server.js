@@ -57,17 +57,14 @@ app.post("/add-user-image", async (req, res) => {
         }
 
         const db = await dbPromise;
-        let user = await db.get(`SELECT * FROM users WHERE user_id = ?`, [userId]);
-
-        // Check if image already exists for this user
-        const existingImage = await db.get(
-            `SELECT * FROM user_images WHERE userimage_id = ? AND user_id = ?`,
-            [image.userimage_id, userId]
-        );
+        
+        // Check if image already exists
+        const existingImage = await db.get(`SELECT * FROM user_images WHERE user_id = ? AND userimage_id = ?`, [userId, image.userimage_id]);
         if (existingImage) {
-            // Image already exists, skip insert and return success
             return res.json({ success: true, message: "User image already exists." });
         }
+
+        let user = await db.get(`SELECT * FROM users WHERE user_id = ?`, [userId]);
 
         if (!user) {
             await db.run(
@@ -111,56 +108,6 @@ app.post("/add-user-image", async (req, res) => {
 });
 
 /**
- * Remove pinned artwork
- */
-app.delete("/remove-user-pin/:userId/:entryId", async (req, res) => {
-  try {
-    const { userId, entryId } = req.params;
-    if (!userId || !entryId) {
-      return res.status(400).json({ error: "Missing userId or entryId" });
-    }
-
-    const db = await dbPromise;
-    
-    // Check if user exists
-    let user = await db.get(`SELECT * FROM users WHERE user_id = ?`, [userId]);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // Check if pin exists
-    const existingPin = await db.get(
-      `SELECT * FROM pinned_artworks WHERE entryId = ? AND user_id = ?`,
-      [entryId, userId]
-    );
-    
-    if (!existingPin) {
-      return res.status(404).json({ error: "Pin not found" });
-    }
-
-    // Remove from pinned_artworks table
-    await db.run(
-      `DELETE FROM pinned_artworks WHERE entryId = ? AND user_id = ?`,
-      [entryId, userId]
-    );
-
-    // Update user's pinnedArtworkIds array
-    const pinIds = JSON.parse(user.pinnedArtworkIds || "[]");
-    const updatedPinIds = pinIds.filter(id => id !== entryId);
-    
-    await db.run(
-      `UPDATE users SET pinnedArtworkIds = ?, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE user_id = ?`,
-      [JSON.stringify(updatedPinIds), userId]
-    );
-
-    res.json({ success: true, message: "Pinned artwork removed." });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/**
  * Add pinned artwork (auto-create user if missing)
  */
 app.post("/add-user-pin", async (req, res) => {
@@ -171,6 +118,13 @@ app.post("/add-user-pin", async (req, res) => {
         }
 
         const db = await dbPromise;
+        
+        // Check if artwork is already pinned
+        const existingPin = await db.get(`SELECT * FROM pinned_artworks WHERE user_id = ? AND entryId = ?`, [userId, artwork.entryId]);
+        if (existingPin) {
+            return res.json({ success: true, message: "Artwork already pinned." });
+        }
+
         let user = await db.get(`SELECT * FROM users WHERE user_id = ?`, [userId]);
 
         if (!user) {
@@ -192,29 +146,69 @@ app.post("/add-user-pin", async (req, res) => {
 
         await db.run(
             `INSERT INTO pinned_artworks 
-                (entryId, user_id, title, image_urls, descriptions, artist, artist_names, thumbnail_url, url, rights, keywords, worldCoords, regionId, isRepresentative, priority, isPinned)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (entryId, user_id, title, image_urls, descriptions, artist, artist_names, thumbnail_url, url, rights, keywords, worldCoords, regionId, isRepresentative, priority)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                artwork.entryId,
-                userId,
-                artwork.title || "",
-                JSON.stringify(artwork.image_urls || {}),
-                JSON.stringify(artwork.descriptions || {}),
-                artwork.artist || "",
-                JSON.stringify(artwork.artist_names || []),
-                artwork.thumbnail_url || "",
-                artwork.url || "",
-                artwork.rights || "",
-                JSON.stringify(artwork.keywords || []),
-                artwork.worldCoords ? JSON.stringify(artwork.worldCoords) : null,
-                artwork.regionId ?? null,
-                artwork.isRepresentative ?? null,
-                artwork.priority ?? null,
-                artwork.isPinned ?? null,
+            artwork.entryId,
+            userId,
+            artwork.title || "",
+            JSON.stringify(artwork.image_urls || {}),
+            JSON.stringify(artwork.descriptions || {}),
+            artwork.artist || "",
+            JSON.stringify(artwork.artist_names || []),
+            artwork.thumbnail_url || "",
+            artwork.url || "",
+            artwork.rights || "",
+            JSON.stringify(artwork.keywords || []),
+            artwork.worldCoords ? JSON.stringify(artwork.worldCoords) : null,
+            artwork.regionId ?? null,
+            artwork.isRepresentative ?? null,
+            artwork.priority ?? null
             ]
         );
 
         res.json({ success: true, message: "Pinned artwork added." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Remove pinned artwork
+ */
+app.delete("/remove-user-pin/:userId/:entryId", async (req, res) => {
+    try {
+        const { userId, entryId } = req.params;
+        if (!userId || !entryId) {
+            return res.status(400).json({ error: "Missing userId or entryId" });
+        }
+
+        const db = await dbPromise;
+        
+        // Check if user exists
+        const user = await db.get(`SELECT * FROM users WHERE user_id = ?`, [userId]);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Remove from pinned_artworks table
+        const result = await db.run(`DELETE FROM pinned_artworks WHERE user_id = ? AND entryId = ?`, [userId, entryId]);
+        
+        if (result.changes === 0) {
+            return res.status(404).json({ error: "Pinned artwork not found" });
+        }
+
+        // Update user's pinnedArtworkIds array
+        const pinIds = JSON.parse(user.pinnedArtworkIds || "[]");
+        const updatedPinIds = pinIds.filter(id => id !== entryId);
+        
+        await db.run(`UPDATE users SET pinnedArtworkIds = ?, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE user_id = ?`, [
+            JSON.stringify(updatedPinIds),
+            userId,
+        ]);
+
+        res.json({ success: true, message: "Pinned artwork removed." });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
