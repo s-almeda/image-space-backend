@@ -485,24 +485,21 @@ async function loadUserLogs(userId) {
         
         tbody.innerHTML = data.logs.map(log => {
             const eventData = typeof log.event_data === 'string' ? 
-                JSON.parse(log.event_data) : log.event_data;
+            JSON.parse(log.event_data) : log.event_data;
             
             // Extract system and task number if they exist
             const system = eventData.system || 'N/A';
             const taskNumber = eventData.taskNumber || 'N/A';
             
-            // Remove already displayed fields from event data for cleaner display
-            const {message, system: _, taskNumber: __, ...otherData} = eventData;
-            
             return `
-                <tr>
-                    <td>${log.id}</td>
-                    <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
-                    <td><span style="font-weight: bold; color: ${system === 'A' ? '#667eea' : '#764ba2'}">${system}</span></td>
-                    <td>${taskNumber}</td>
-                    <td>${log.message || eventData.message || 'N/A'}</td>
-                    <td class="json-cell" title="${JSON.stringify(otherData, null, 2)}">${JSON.stringify(otherData)}</td>
-                </tr>
+            <tr>
+                <td>${log.id}</td>
+                <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
+                <td><span style="font-weight: bold; color: ${system === 'A' ? '#667eea' : '#764ba2'}">${system}</span></td>
+                <td>${taskNumber}</td>
+                <td>${log.message || eventData.message || 'N/A'}</td>
+                <td class="json-cell" style="white-space: pre-wrap; overflow-x: auto;" title="${JSON.stringify(eventData, null, 2)}">${JSON.stringify(eventData, null, 2)}</td>
+            </tr>
             `;
         }).join('');
     } catch (error) {
