@@ -1,143 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Artographer Data API Dashboard</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
+        * {
             margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
+            padding: 0;
+            box-sizing: border-box;
         }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #515151 0%, #030303 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
         .container {
             max-width: 1400px;
             margin: 0 auto;
             background: white;
+            border-radius: 20px;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 { color: #333; border-bottom: 3px solid #007acc; padding-bottom: 10px; }
-        h2 { color: #555; margin-top: 30px; }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+        
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
-            margin: 20px 0;
+            margin-bottom: 40px;
         }
+        
         .stat-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #515151 0%, #030303 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
             text-align: center;
-            border-left: 4px solid #007acc;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
         .stat-number {
-            font-size: 2em;
+            font-size: 3em;
             font-weight: bold;
-            color: #007acc;
+            margin-bottom: 10px;
         }
+        
         .stat-label {
-            color: #666;
-            margin-top: 5px;
+            font-size: 1.1em;
+            opacity: 0.95;
         }
+        
         .api-section {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
         }
-        .curl-cmd {
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 12px;
-            overflow-x: auto;
-            white-space: pre-wrap;
+        
+        .api-section h2 {
+            color: #333;
+            margin-bottom: 20px;
         }
-        .data-table-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .data-table-wrapper {
-            max-height: 400px;
-            overflow-y: auto;
-            overflow-x: auto;
-        }
-        .data-table th {
-            background: #f8f9fa;
-            padding: 12px 8px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #dee2e6;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .data-table td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #e9ecef;
-            vertical-align: top;
-        }
-        .data-table tr:hover {
-            background: #f8f9fa;
-        }
-        .json-cell {
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .json-cell:hover {
-            white-space: normal;
-            word-break: break-all;
-        }
+        
         .endpoint {
-            margin: 15px 0;
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
         }
+        
         .method {
             display: inline-block;
             padding: 4px 8px;
             border-radius: 4px;
+            color: white;
+            font-size: 0.85em;
             font-weight: bold;
-            font-size: 12px;
             margin-right: 10px;
         }
-        .get { background: #10b981; color: white; }
-        .post { background: #3b82f6; color: white; }
-        .delete { background: #ef4444; color: white; }
+        
+        .method.get { background: #28a745; }
+        .method.post { background: #007bff; }
+        .method.delete { background: #dc3545; }
+        
+        .curl-cmd {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
         .refresh-btn {
-            background: #007acc;
+            background: linear-gradient(135deg, #515151 0%, #030303 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
             cursor: pointer;
-            font-size: 14px;
-            margin: 10px 0;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
         }
+        
         .refresh-btn:hover {
-            background: #0056b3;
+            transform: scale(1.05);
         }
+        
+        .data-table-container {
+            margin-bottom: 40px;
+        }
+        
         .table-title {
-            background: #007acc;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .data-table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        .data-table thead {
+            background: linear-gradient(135deg, #515151 0%, #030303 100%);
+            color: white;
+        }
+        
+        .data-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .json-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #666;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .data-table a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .data-table a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: #dc3545;
             color: white;
             padding: 15px;
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
         }
     </style>
 </head>
@@ -146,7 +210,7 @@
         <h1>🎨 Artographer Data API Dashboard</h1>
         
         <div class="stats" id="stats">
-            <!-- Stats will be populated by JavaScript -->
+            <div class="loading">Loading stats...</div>
         </div>
 
         <div class="api-section">
@@ -155,13 +219,13 @@
             <div class="endpoint">
                 <span class="method get">GET</span>
                 <strong>/get-user/{id}</strong> - Get user data
-                <div class="curl-cmd">curl -X GET https://snailbunny.site/artographer-data/get-user/shm</div>
+                <div class="curl-cmd">curl -X GET http://localhost:3001/get-user/shm</div>
             </div>
 
             <div class="endpoint">
                 <span class="method post">POST</span>
                 <strong>/add-user</strong> - Create new user
-                <div class="curl-cmd">curl -X POST https://snailbunny.site/artographer-data/add-user \
+                <div class="curl-cmd">curl -X POST http://localhost:3001/add-user \
   -H "Content-Type: application/json" \
   -d '{"userId": "newuser"}'</div>
             </div>
@@ -169,15 +233,56 @@
             <div class="endpoint">
                 <span class="method post">POST</span>
                 <strong>/add-user-image</strong> - Add user image
-                <div class="curl-cmd">curl -X POST https://snailbunny.site/artographer-data/add-user-image \
+                <div class="curl-cmd">curl -X POST http://localhost:3001/add-user-image \
   -H "Content-Type: application/json" \
-  -d '{"userId": "shm", "image": {"userimage_id": "img_001", "title": "My Image", "imageUrl": "https://example.com/image.jpg", "worldCoords": [0.5, 0.3], "regionId": 1, "confidence": 0.95}}'</div>
+  -d '{"userId": "shm", "image": {"userimage_id": "img_001", "title": "My Image", "imageUrl": "https://example.com/image.jpg", "worldCoords": [0.5, 0.3], "regionId": "1", "confidence": 0.95, "anchors": []}}'</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <strong>/add-user-pin</strong> - Add pinned artwork
+                <div class="curl-cmd">curl -X POST http://localhost:3001/add-user-pin \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "shm", "artwork": {"entryId": "art_001", "title": "Artwork", "image_urls": {}, "descriptions": {}, "artist": "Artist Name", "artist_names": [], "thumbnail_url": "", "url": "", "rights": "", "keywords": []}}'</div>
+            </div>
+
+           <div class="endpoint">
+                <span class="method post">POST</span>
+                <strong>/log-event</strong> - Log user event (accepts any arbitrary fields)
+                <div class="curl-cmd">curl -X POST http://localhost:3001/log-event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "testuser",
+    "system": "A",
+    "taskNumber": 4,
+    "message": "artwork clicked",
+    "artworkId": "w_1235",
+    "coords": "[0.23, 0.34]"
+  }'</div>
+                <small style="color: #666; display: block; margin-top: 8px;">
+                    <strong>Note:</strong> System should be "A" (Artographer) or "B" (Baseline). Task number ranges from 1 (first task this participant completed that session) to 4 (4th task).
+                    You can include any number of additional arbitrary fields in the request.
+                </small>
+            </div>
+
+
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <strong>/get-logs/{userId}</strong> - Get user logs
+                <div class="curl-cmd">curl -X GET http://localhost:3001/get-logs/shm</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method delete">DELETE</span>
+                <strong>/remove-user-pin/{userId}/{entryId}</strong> - Remove pinned artwork
+                <div class="curl-cmd">curl -X DELETE http://localhost:3001/remove-user-pin/shm/art_001</div>
             </div>
 
             <div class="endpoint">
                 <span class="method delete">DELETE</span>
                 <strong>/user/{id}</strong> - Delete user and all data
-                <div class="curl-cmd">curl -X DELETE https://snailbunny.site/artographer-data/user/shm</div>
+                <div class="curl-cmd">curl -X DELETE http://localhost:3001/user/shm</div>
             </div>
         </div>
 
@@ -198,7 +303,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data populated by JavaScript -->
+                        <tr><td colspan="5" class="loading">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -222,7 +327,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data populated by JavaScript -->
+                        <tr><td colspan="8" class="loading">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -242,25 +347,59 @@
                             <th>Thumbnail</th>
                             <th>World Coords</th>
                             <th>Region ID</th>
-                            <th>Created At</th>
+                            <th>Pinned At</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data populated by JavaScript -->
+                        <tr><td colspan="8" class="loading">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
+<!-- User Logs Table -->
+<div class="data-table-container">
+    <h3 class="table-title">📝 Recent User Logs</h3>
+    <div style="margin-bottom: 15px;">
+        <select id="userLogSelector" onchange="loadUserLogs(this.value)" style="padding: 8px 12px; border-radius: 5px; border: 1px solid #ddd; font-size: 1em;">
+            <option value="">Select a user to view logs...</option>
+        </select>
+        <span id="logCount" style="margin-left: 15px; color: #666;"></span>
+    </div>
+    <div class="data-table-wrapper">
+        <table class="data-table" id="userLogsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Timestamp</th>
+                    <th>System</th>
+                    <th>Task #</th>
+                    <th>Message</th>
+                    <th>Event Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="6" style="text-align: center; color: #666;">Select a user to view their logs</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
-            <p>🚀 Artographer Data API • <a href="https://snailbunny.site" style="color: #007acc;">snailbunny.site</a></p>
+            <p>🚀 Artographer Data API • Running on port 3001</p>
         </div>
     </div>
 
     <script>
+        // Get the base URL - adjust this based on your setup
+        const API_BASE = window.location.origin;
+        
         async function loadData() {
             try {
-                const response = await fetch('/api-data');
+                const response = await fetch(`${API_BASE}/api-data`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 
                 // Update stats
@@ -277,6 +416,10 @@
                         <div class="stat-number">${data.pinnedArtworks.length}</div>
                         <div class="stat-label">Pinned Artworks</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.userLogs ? data.userLogs.length : 0}</div>
+                        <div class="stat-label">User Logs</div>
+                    </div>
                 `;
                 
                 // Populate tables
@@ -284,18 +427,99 @@
                 populateUserImagesTable(data.userImages);
                 populatePinnedArtworksTable(data.pinnedArtworks);
                 
+
+                    // Populate user selector dropdown
+const userSelector = document.getElementById('userLogSelector');
+const currentSelection = userSelector.value;
+userSelector.innerHTML = '<option value="">Select a user to view logs...</option>' + 
+    data.users.map(user => 
+        `<option value="${user.user_id}">${user.user_id}</option>`
+    ).join('');
+// Restore previous selection if it exists
+if (currentSelection) {
+    userSelector.value = currentSelection;
+    loadUserLogs(currentSelection);
+}
+
+                // Load logs if your API returns them
+                if (data.userLogs) {
+                    populateUserLogsTable(data.userLogs);
+                } else {
+                    // Otherwise fetch them separately
+                    loadUserLogs();
+                }
+                
             } catch (error) {
                 console.error('Failed to load data:', error);
+                document.getElementById('stats').innerHTML = `
+                    <div class="error-message">Failed to load data: ${error.message}</div>
+                `;
             }
         }
         
+async function loadUserLogs(userId) {
+    if (!userId) {
+        document.querySelector('#userLogsTable tbody').innerHTML = 
+            '<tr><td colspan="6" style="text-align: center; color: #666;">Select a user to view their logs</td></tr>';
+        document.getElementById('logCount').textContent = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/get-logs/${userId}?limit=100`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        const tbody = document.querySelector('#userLogsTable tbody');
+        document.getElementById('logCount').textContent = `(${data.logs.length} logs found)`;
+        
+        if (!data.logs || data.logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #666;">No logs found for user: ${userId}</td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = data.logs.map(log => {
+            const eventData = typeof log.event_data === 'string' ? 
+                JSON.parse(log.event_data) : log.event_data;
+            
+            // Extract system and task number if they exist
+            const system = eventData.system || 'N/A';
+            const taskNumber = eventData.taskNumber || 'N/A';
+            
+            // Remove already displayed fields from event data for cleaner display
+            const {message, system: _, taskNumber: __, ...otherData} = eventData;
+            
+            return `
+                <tr>
+                    <td>${log.id}</td>
+                    <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
+                    <td><span style="font-weight: bold; color: ${system === 'A' ? '#667eea' : '#764ba2'}">${system}</span></td>
+                    <td>${taskNumber}</td>
+                    <td>${log.message || eventData.message || 'N/A'}</td>
+                    <td class="json-cell" title="${JSON.stringify(otherData, null, 2)}">${JSON.stringify(otherData)}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Failed to load user logs:', error);
+        document.querySelector('#userLogsTable tbody').innerHTML = 
+            `<tr><td colspan="6" style="text-align: center; color: #dc3545;">Failed to load logs: ${error.message}</td></tr>`;
+        document.getElementById('logCount').textContent = '';
+    }
+}
         function populateUsersTable(users) {
             const tbody = document.querySelector('#usersTable tbody');
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No users found</td></tr>';
+                return;
+            }
             tbody.innerHTML = users.map(user => `
                 <tr>
                     <td><strong>${user.user_id}</strong></td>
-                    <td class="json-cell">${user.userImageIds || '[]'}</td>
-                    <td class="json-cell">${user.pinnedArtworkIds || '[]'}</td>
+                    <td class="json-cell" title="${user.userImageIds || '[]'}">${user.userImageIds || '[]'}</td>
+                    <td class="json-cell" title="${user.pinnedArtworkIds || '[]'}">${user.pinnedArtworkIds || '[]'}</td>
                     <td>${user.createdAt ? new Date(user.createdAt).toLocaleString() : 'N/A'}</td>
                     <td>${user.updatedAt ? new Date(user.updatedAt).toLocaleString() : 'N/A'}</td>
                 </tr>
@@ -304,15 +528,21 @@
         
         function populateUserImagesTable(userImages) {
             const tbody = document.querySelector('#userImagesTable tbody');
+            if (!userImages || userImages.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666;">No images found</td></tr>';
+                return;
+            }
             tbody.innerHTML = userImages.map(img => `
                 <tr>
                     <td>${img.userimage_id}</td>
                     <td>${img.user_id}</td>
-                    <td>${img.title}</td>
-                    <td class="json-cell"><a href="${img.imageUrl}" target="_blank">🔗</a> ${img.imageUrl}</td>
-                    <td>${img.worldCoords}</td>
-                    <td>${img.regionId}</td>
-                    <td>${img.confidence}</td>
+                    <td>${img.title || 'Untitled'}</td>
+                    <td class="json-cell" title="${img.imageUrl}">
+                        ${img.imageUrl ? `<a href="${img.imageUrl}" target="_blank">🔗 View</a>` : 'N/A'}
+                    </td>
+                    <td>${img.worldCoords || 'N/A'}</td>
+                    <td>${img.regionId || 'N/A'}</td>
+                    <td>${img.confidence ? img.confidence.toFixed(2) : 'N/A'}</td>
                     <td>${img.dateAdded ? new Date(img.dateAdded).toLocaleString() : 'N/A'}</td>
                 </tr>
             `).join('');
@@ -320,22 +550,49 @@
         
         function populatePinnedArtworksTable(pinnedArtworks) {
             const tbody = document.querySelector('#pinnedArtworksTable tbody');
+            if (!pinnedArtworks || pinnedArtworks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666;">No pinned artworks found</td></tr>';
+                return;
+            }
             tbody.innerHTML = pinnedArtworks.map(art => `
                 <tr>
                     <td>${art.entryId}</td>
                     <td>${art.user_id}</td>
-                    <td>${art.title}</td>
-                    <td>${art.artist}</td>
-                    <td class="json-cell">${art.thumbnail_url ? `<a href="${art.thumbnail_url}" target="_blank">🔗</a>` : 'N/A'}</td>
+                    <td>${art.title || 'Untitled'}</td>
+                    <td>${art.artist || 'Unknown'}</td>
+                    <td class="json-cell">
+                        ${art.thumbnail_url ? `<a href="${art.thumbnail_url}" target="_blank">🔗 View</a>` : 'N/A'}
+                    </td>
                     <td>${art.worldCoords || 'N/A'}</td>
                     <td>${art.regionId || 'N/A'}</td>
-                    <td>${art.createdAt ? new Date(art.createdAt).toLocaleString() : 'N/A'}</td>
+                    <td>${art.pinnedAt ? new Date(art.pinnedAt).toLocaleString() : 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function populateUserLogsTable(userLogs) {
+            const tbody = document.querySelector('#userLogsTable tbody');
+            if (!userLogs || userLogs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">No logs found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = userLogs.slice(0, 50).map(log => `
+                <tr>
+                    <td>${log.id}</td>
+                    <td>${log.user_id}</td>
+                    <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
+                    <td>${log.message || 'N/A'}</td>
+                    <td class="json-cell" title="${log.event_data}">${log.event_data}</td>
+                    <td>${log.created_at ? new Date(log.created_at).toLocaleString() : 'N/A'}</td>
                 </tr>
             `).join('');
         }
         
         // Load data on page load
         loadData();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
     </script>
 </body>
 </html>
