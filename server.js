@@ -295,6 +295,114 @@ app.delete("/user/:id", async (req, res) => {
     }
 });
 
+/**
+ * Log user event
+ */
+app.post("/log-event", async (req, res) => {
+    try {
+        const { userId, timestamp, message, ...extraFields } = req.body;
+        if (!userId) {
+            return res.status(400).json({ error: "Missing userId" });
+        }
+
+        const db = await dbPromise;
+        
+        // Combine all event data
+        const eventData = {
+            message: message || "",
+            ...extraFields
+        };
+
+        const eventTimestamp = timestamp || new Date().toISOString();
+
+        await db.run(
+            `INSERT INTO user_logs (user_id, timestamp, message, event_data) 
+             VALUES (?, ?, ?, ?)`,
+            [
+                userId,
+                eventTimestamp,
+                message || "",
+                JSON.stringify(eventData)
+            ]
+        );
+
+        res.json({ success: true, message: "Event logged" });
+    } catch (err) {
+        console.error("Error logging event:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Get user logs (with optional filtering)
+ */
+app.get("/get-logs/:userId", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { limit = 100, offset = 0, since, until } = req.query;
+        
+        const db = await dbPromise;
+        
+        let query = `SELECT * FROM user_logs WHERE user_id = ?`;
+        const params = [userId];
+        
+        if (since) {
+            query += ` AND timestamp >= ?`;
+            params.push(since);
+        }
+        
+        if (until) {
+            query += ` AND timestamp <= ?`;
+            params.push(until);
+        }
+        
+        query += ` ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
+        params.push(limit, offset);
+        
+        const logs = await db.all(query, params);
+        
+        // Parse the JSON event_data for each log
+        const parsedLogs = logs.map(log => ({
+            ...log,
+            event_data: JSON.parse(log.event_data)
+        }));
+        
+        res.json({ logs: parsedLogs });
+    } catch (err) {
+        console.error("Error fetching logs:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Clear old logs (optional maintenance endpoint)
+ */
+// app.delete("/clear-old-logs", async (req, res) => {
+//     try {
+//         const { daysToKeep = 30 } = req.body;
+//         const db = await dbPromise;
+        
+//         const cutoffDate = new Date();
+//         cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+        
+//         const result = await db.run(
+//             `DELETE FROM user_logs WHERE timestamp < ?`,
+//             [cutoffDate.toISOString()]
+//         );
+        
+//         res.json({ 
+//             success: true, 
+//             message: `Deleted ${result.changes} old log entries` 
+//         });
+//     } catch (err) {
+//         console.error("Error clearing logs:", err);
+//         res.status(500).json({ error: err.message });
+//     }
+// });
+
+// === add new endpoints here ==== // 
+
+
 // Print some DB stats on startup
 (async () => {
     const db = await dbPromise;
