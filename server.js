@@ -419,6 +419,7 @@ app.get("/get-logs/:userId", async (req, res) => {
 
     app.listen(port, () => {
         console.log(`Server listening on port ${port}`);
+        console.log(`API available at http://localhost:${port} OR https://snailbunny.site/artographer-data/`);
     });
 })();
 
