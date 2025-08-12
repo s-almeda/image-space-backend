@@ -219,13 +219,13 @@
             <div class="endpoint">
                 <span class="method get">GET</span>
                 <strong>/get-user/{id}</strong> - Get user data
-                <div class="curl-cmd">curl -X GET http://localhost:3001/get-user/shm</div>
+                <div class="curl-cmd">curl -X GET https://snailbunny.site/artographer-data/get-user/shm</div>
             </div>
 
             <div class="endpoint">
                 <span class="method post">POST</span>
                 <strong>/add-user</strong> - Create new user
-                <div class="curl-cmd">curl -X POST http://localhost:3001/add-user \
+                <div class="curl-cmd">curl -X POST https://snailbunny.site/artographer-data/add-user \
   -H "Content-Type: application/json" \
   -d '{"userId": "newuser"}'</div>
             </div>
@@ -233,7 +233,7 @@
             <div class="endpoint">
                 <span class="method post">POST</span>
                 <strong>/add-user-image</strong> - Add user image
-                <div class="curl-cmd">curl -X POST http://localhost:3001/add-user-image \
+                <div class="curl-cmd">curl -X POST https://snailbunny.site/artographer-data/add-user-image \
   -H "Content-Type: application/json" \
   -d '{"userId": "shm", "image": {"userimage_id": "img_001", "title": "My Image", "imageUrl": "https://example.com/image.jpg", "worldCoords": [0.5, 0.3], "regionId": "1", "confidence": 0.95, "anchors": []}}'</div>
             </div>
@@ -241,7 +241,7 @@
             <div class="endpoint">
                 <span class="method post">POST</span>
                 <strong>/add-user-pin</strong> - Add pinned artwork
-                <div class="curl-cmd">curl -X POST http://localhost:3001/add-user-pin \
+                <div class="curl-cmd">curl -X POST https://snailbunny.site/artographer-data/add-user-pin \
   -H "Content-Type: application/json" \
   -d '{"userId": "shm", "artwork": {"entryId": "art_001", "title": "Artwork", "image_urls": {}, "descriptions": {}, "artist": "Artist Name", "artist_names": [], "thumbnail_url": "", "url": "", "rights": "", "keywords": []}}'</div>
             </div>
@@ -249,7 +249,7 @@
            <div class="endpoint">
                 <span class="method post">POST</span>
                 <strong>/log-event</strong> - Log user event (accepts any arbitrary fields)
-                <div class="curl-cmd">curl -X POST http://localhost:3001/log-event \
+                <div class="curl-cmd">curl -X POST https://snailbunny.site/artographer-data/log-event \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "testuser",
@@ -270,19 +270,19 @@
             <div class="endpoint">
                 <span class="method get">GET</span>
                 <strong>/get-logs/{userId}</strong> - Get user logs
-                <div class="curl-cmd">curl -X GET http://localhost:3001/get-logs/shm</div>
+                <div class="curl-cmd">curl -X GET https://snailbunny.site/artographer-data/get-logs/shm</div>
             </div>
 
             <div class="endpoint">
                 <span class="method delete">DELETE</span>
                 <strong>/remove-user-pin/{userId}/{entryId}</strong> - Remove pinned artwork
-                <div class="curl-cmd">curl -X DELETE http://localhost:3001/remove-user-pin/shm/art_001</div>
+                <div class="curl-cmd">curl -X DELETE https://snailbunny.site/artographer-data/remove-user-pin/shm/art_001</div>
             </div>
 
             <div class="endpoint">
                 <span class="method delete">DELETE</span>
                 <strong>/user/{id}</strong> - Delete user and all data
-                <div class="curl-cmd">curl -X DELETE http://localhost:3001/user/shm</div>
+                <div class="curl-cmd">curl -X DELETE https://snailbunny.site/artographer-data/user/shm</div>
             </div>
         </div>
 
