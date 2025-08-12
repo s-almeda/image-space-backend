@@ -392,7 +392,10 @@
 
     <script>
         // Get the base URL - adjust this based on your setup
-        const API_BASE = window.location.origin;
+        // Get the base URL including the path
+        const API_BASE = window.location.pathname.includes('/artographer-data') 
+            ? window.location.origin + '/artographer-data'
+            : window.location.origin;
         
         async function loadData() {
             try {
