@@ -359,12 +359,17 @@
 
 <!-- User Logs Table -->
 <div class="data-table-container">
-    <h3 class="table-title">📝 Recent User Logs</h3>
+    <h3 class="table-title">📝 Recent User Logs </h3>
     <div style="margin-bottom: 15px;">
         <select id="userLogSelector" onchange="loadUserLogs(this.value)" style="padding: 8px 12px; border-radius: 5px; border: 1px solid #ddd; font-size: 1em;">
             <option value="">Select a user to view logs...</option>
         </select>
+
+                <button id="downloadLogsBtn" onclick="downloadUserLogs()" style="margin-left: 20px; padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; display: none;">
+            📥 Download Logs as JSON
+        </button>
         <span id="logCount" style="margin-left: 15px; color: #666;"></span>
+
     </div>
     <div class="data-table-wrapper">
         <table class="data-table" id="userLogsTable">
@@ -442,6 +447,7 @@ userSelector.innerHTML = '<option value="">Select a user to view logs...</option
 if (currentSelection) {
     userSelector.value = currentSelection;
     loadUserLogs(currentSelection);
+    
 }
 
                 // Load logs if your API returns them
@@ -465,6 +471,7 @@ async function loadUserLogs(userId) {
         document.querySelector('#userLogsTable tbody').innerHTML = 
             '<tr><td colspan="6" style="text-align: center; color: #666;">Select a user to view their logs</td></tr>';
         document.getElementById('logCount').textContent = '';
+        document.getElementById('downloadLogsBtn').style.display = 'none';
         return;
     }
     
@@ -482,6 +489,8 @@ async function loadUserLogs(userId) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #666;">No logs found for user: ${userId}</td></tr>`;
             return;
         }
+
+        document.getElementById('downloadLogsBtn').style.display = userId ? 'inline-block' : 'none';
         
         tbody.innerHTML = data.logs.map(log => {
             const eventData = typeof log.event_data === 'string' ? 
@@ -569,6 +578,33 @@ async function loadUserLogs(userId) {
                 </tr>
             `).join('');
         }
+
+function downloadUserLogs() {
+    const userId = document.getElementById('userLogSelector').value;
+    if (!userId) return;
+    
+    fetch(`${API_BASE}/get-logs/${userId}?limit=10000`)
+        .then(response => response.json())
+        .then(data => {
+            // Create a formatted JSON string
+            const jsonString = JSON.stringify(data.logs, null, 2);
+            
+            // Create a blob and download link
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${userId}_logs_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error('Failed to download logs:', error);
+            alert('Failed to download logs: ' + error.message);
+        });
+}
         
         function populateUserLogsTable(userLogs) {
             const tbody = document.querySelector('#userLogsTable tbody');
