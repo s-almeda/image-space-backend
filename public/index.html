@@ -288,6 +288,39 @@
 
         <button class="refresh-btn" onclick="loadData()">🔄 Refresh Data</button>
 
+        <!-- User Logs Table -->
+        <div class="data-table-container">
+            <h3 class="table-title">📝 Recent User Logs </h3>
+            <div style="margin-bottom: 15px;">
+                <select id="userLogSelector" onchange="loadUserLogs(this.value)" style="padding: 8px 12px; border-radius: 5px; border: 1px solid #ddd; font-size: 1em;">
+                    <option value="">Select a user to view logs...</option>
+                </select>
+
+                        <button id="downloadLogsBtn" onclick="downloadUserLogs()" style="margin-left: 20px; padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; display: none;">
+                    📥 Download Logs as JSON
+                </button>
+                <span id="logCount" style="margin-left: 15px; color: #666;"></span>
+
+            </div>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="userLogsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Timestamp</th>
+                            <th>System</th>
+                            <th>Task #</th>
+                            <th>Message</th>
+                            <th>Event Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" style="text-align: center; color: #666;">Select a user to view their logs</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Users Table -->
         <div class="data-table-container">
             <h3 class="table-title">👥 Users</h3>
@@ -347,48 +380,16 @@
                             <th>Thumbnail</th>
                             <th>World Coords</th>
                             <th>Region ID</th>
+                            <th>Task #</th>
                             <th>Pinned At</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="8" class="loading">Loading...</td></tr>
+                        <tr><td colspan="9" class="loading">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
-
-<!-- User Logs Table -->
-<div class="data-table-container">
-    <h3 class="table-title">📝 Recent User Logs </h3>
-    <div style="margin-bottom: 15px;">
-        <select id="userLogSelector" onchange="loadUserLogs(this.value)" style="padding: 8px 12px; border-radius: 5px; border: 1px solid #ddd; font-size: 1em;">
-            <option value="">Select a user to view logs...</option>
-        </select>
-
-                <button id="downloadLogsBtn" onclick="downloadUserLogs()" style="margin-left: 20px; padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; display: none;">
-            📥 Download Logs as JSON
-        </button>
-        <span id="logCount" style="margin-left: 15px; color: #666;"></span>
-
-    </div>
-    <div class="data-table-wrapper">
-        <table class="data-table" id="userLogsTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Timestamp</th>
-                    <th>System</th>
-                    <th>Task #</th>
-                    <th>Message</th>
-                    <th>Event Data</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td colspan="6" style="text-align: center; color: #666;">Select a user to view their logs</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
 
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
             <p>🚀 Artographer Data API • Running on port 3001</p>
@@ -560,7 +561,7 @@ async function loadUserLogs(userId) {
         function populatePinnedArtworksTable(pinnedArtworks) {
             const tbody = document.querySelector('#pinnedArtworksTable tbody');
             if (!pinnedArtworks || pinnedArtworks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666;">No pinned artworks found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #666;">No pinned artworks found</td></tr>';
                 return;
             }
             tbody.innerHTML = pinnedArtworks.map(art => `
@@ -574,6 +575,7 @@ async function loadUserLogs(userId) {
                     </td>
                     <td>${art.worldCoords || 'N/A'}</td>
                     <td>${art.regionId || 'N/A'}</td>
+                    <td><span style="font-weight: bold; color: #667eea;">${art.taskNumber || 'N/A'}</span></td>
                     <td>${art.pinnedAt ? new Date(art.pinnedAt).toLocaleString() : 'N/A'}</td>
                 </tr>
             `).join('');
