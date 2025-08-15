@@ -27,6 +27,11 @@ async function initDB() {
     await db.exec(`ALTER TABLE users ADD COLUMN updatedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`);
   } catch (e) { /* Column exists */ }
 
+  // Add taskNumber column if it doesn't exist
+  try {
+    await db.exec(`ALTER TABLE pinned_artworks ADD COLUMN taskNumber INTEGER`);
+  } catch (e) { /* Column exists */ }
+
   // Create user_images table
   await db.exec(`
     CREATE TABLE IF NOT EXISTS user_images (

@@ -155,8 +155,8 @@ app.post("/add-user-pin", async (req, res) => {
 
         await db.run(
             `INSERT INTO pinned_artworks 
-            (entryId, user_id, title, image_urls, descriptions, artist, artist_names, thumbnail_url, url, rights, keywords, worldCoords, regionId, isRepresentative, priority)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (entryId, user_id, title, image_urls, descriptions, artist, artist_names, thumbnail_url, url, rights, keywords, worldCoords, regionId, isRepresentative, priority, taskNumber)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
             artwork.entryId,
             userId,
@@ -172,7 +172,8 @@ app.post("/add-user-pin", async (req, res) => {
             artwork.worldCoords ? JSON.stringify(artwork.worldCoords) : null,
             artwork.regionId ?? null,
             artwork.isRepresentative ?? null,
-            artwork.priority ?? null
+            artwork.priority ?? null,
+            artwork.taskNumber ?? null  // Add this line
             ]
         );
 
