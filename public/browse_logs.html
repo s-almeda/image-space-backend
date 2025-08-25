@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Logs Browser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .sidebar {
+            flex: 0 0 300px;
+            border-right: 1px solid #ccc;
+            padding-right: 20px;
+            margin-right: 20px;
+        }
+        .content {
+            flex: 1;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+        .event-data {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .event-data-full {
+            display: none;
+            white-space: pre-wrap;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            overflow: auto;
+            max-height: 300px;
+        }
+        .show-more {
+            color: #0366d6;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        #loading {
+            display: none;
+            margin-top: 20px;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+            padding: 8px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Logs Browser</h1>
+    
+    <div class="breadcrumb" id="breadcrumb">
+        <a href="#" onclick="loadParticipants()">Home</a>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h2>Participants</h2>
+            <div id="participants-list">
+                <p>Loading participants...</p>
+            </div>
+            
+            <div id="files-list" style="display: none;">
+                <h3>Log Files</h3>
+                <div id="files-container"></div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="log-content">
+                <p>Select a participant and log file to view events.</p>
+            </div>
+            <div id="loading">Loading data...</div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentParticipant = '';
+        let currentFile = '';
+        
+        // Load participants on page load
+        document.addEventListener('DOMContentLoaded', loadParticipants);
+        
+        // Function to load participants
+        function loadParticipants() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('files-list').style.display = 'none';
+            document.getElementById('log-content').innerHTML = '<p>Select a participant and log file to view events.</p>';
+            currentParticipant = '';
+            currentFile = '';
+            updateBreadcrumb();
+            
+            fetch('/api/logs/participants')
+                .then(response => response.json())
+                .then(data => {
+                    const participantsList = document.getElementById('participants-list');
+                    
+                    if (data.participants.length === 0) {
+                        participantsList.innerHTML = '<p>No participants found.</p>';
+                        return;
+                    }
+                    
+                    let html = '<ul>';
+                    data.participants.forEach(participant => {
+                        html += `<li><a href="#" onclick="loadFiles('${participant}')">${participant}</a></li>`;
+                    });
+                    html += '</ul>';
+                    
+                    participantsList.innerHTML = html;
+                    document.getElementById('loading').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error fetching participants:', error);
+                    document.getElementById('participants-list').innerHTML = 
+                        `<p>Error loading participants: ${error.message}</p>`;
+                    document.getElementById('loading').style.display = 'none';
+                });
+        }
+        
+        // Function to load files for a participant
+        function loadFiles(participant) {
+            document.getElementById('loading').style.display = 'block';
+            currentParticipant = participant;
+            updateBreadcrumb();
+            
+            fetch(`/api/logs/files/${participant}`)
+                .then(response => response.json())
+                .then(data => {
+                    const filesContainer = document.getElementById('files-container');
+                    
+                    if (data.files.length === 0) {
+                        filesContainer.innerHTML = '<p>No log files found for this participant.</p>';
+                        return;
+                    }
+                    
+                    let html = '<ul>';
+                    data.files.forEach(file => {
+                        const fileName = file.split('/').pop();
+                        html += `<li><a href="#" onclick="loadLogContent('${participant}', '${file}')">${fileName}</a></li>`;
+                    });
+                    html += '</ul>';
+                    
+                    filesContainer.innerHTML = html;
+                    document.getElementById('files-list').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error fetching files:', error);
+                    document.getElementById('files-container').innerHTML = 
+                        `<p>Error loading files: ${error.message}</p>`;
+                    document.getElementById('loading').style.display = 'none';
+                });
+        }
+        
+        // Function to load log content
+        function loadLogContent(participant, filePath) {
+            document.getElementById('loading').style.display = 'block';
+            currentFile = filePath.split('/').pop();
+            updateBreadcrumb();
+            
+            fetch(`/api/logs/content?file=${filePath}`)
+                .then(response => response.json())
+                .then(data => {
+                    const logContent = document.getElementById('log-content');
+                    
+                    if (!data.logs || data.logs.length === 0) {
+                        logContent.innerHTML = '<p>No log events found in this file.</p>';
+                        document.getElementById('loading').style.display = 'none';
+                        return;
+                    }
+                    
+                    // Create header with metadata
+                    let html = `
+                        <h2>Log: ${currentFile}</h2>
+                        <p><strong>User ID:</strong> ${data.user_id}</p>
+                        <p><strong>Task:</strong> ${data.task}</p>
+                        <p><strong>Log Count:</strong> ${data.log_count}</p>
+                    `;
+                    
+                    // Create table
+                    html += `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Message</th>
+                                    <th>Event Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    // Add rows for each log entry
+                    data.logs.forEach((log, index) => {
+                        const eventData = JSON.stringify(log.event_data, null, 2);
+                        html += `
+                            <tr>
+                                <td>${log.id}</td>
+                                <td>${new Date(log.timestamp).toLocaleString()}</td>
+                                <td>${log.message}</td>
+                                <td>
+                                    <div class="event-data">${shortenEventData(log.event_data)}
+                                        <span class="show-more" onclick="toggleEventData(${index})">Show more</span>
+                                    </div>
+                                    <div class="event-data-full" id="event-data-${index}">${eventData}</div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    logContent.innerHTML = html;
+                    document.getElementById('loading').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error fetching log content:', error);
+                    document.getElementById('log-content').innerHTML = 
+                        `<p>Error loading log content: ${error.message}</p>`;
+                    document.getElementById('loading').style.display = 'none';
+                });
+        }
+        
+        // Helper function to shorten event data for display
+        function shortenEventData(eventData) {
+            const str = JSON.stringify(eventData);
+            return str.length > 50 ? str.substring(0, 50) + '...' : str;
+        }
+        
+        // Function to toggle full event data display
+        function toggleEventData(index) {
+            const element = document.getElementById(`event-data-${index}`);
+            if (element.style.display === 'block') {
+                element.style.display = 'none';
+                event.target.textContent = 'Show more';
+            } else {
+                element.style.display = 'block';
+                event.target.textContent = 'Show less';
+            }
+        }
+        
+        // Update breadcrumb
+        function updateBreadcrumb() {
+            let html = '<a href="#" onclick="loadParticipants()">Home</a>';
+            
+            if (currentParticipant) {
+                html += ` > <a href="#" onclick="loadFiles('${currentParticipant}')">${currentParticipant}</a>`;
+                
+                if (currentFile) {
+                    html += ` > ${currentFile}`;
+                }
+            }
+            
+            document.getElementById('breadcrumb').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
