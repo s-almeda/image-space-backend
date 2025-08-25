@@ -3,6 +3,8 @@
 import express from "express";
 import cors from "cors";
 import dbPromise from "./database.js";
+import fs from "fs";
+import path from "path";
 
 const app = express();
 app.use(cors());
@@ -16,6 +18,11 @@ const port = process.env.PORT || 3001;
 // Root route: redirect to dashboard
 app.get("/", (req, res) => {
     res.redirect('index.html');
+});
+
+// Logs browser route
+app.get("/logs", (req, res) => {
+    res.redirect('/browse_logs.html');
 });
 
 // API data endpoint for the dashboard
@@ -403,6 +410,90 @@ app.get("/get-logs/:userId", async (req, res) => {
 
 // === add new endpoints here ==== // 
 
+/**
+ * Log browser endpoints
+ */
+
+// Get all participants (directories in user_logs)
+app.get("/api/logs/participants", (req, res) => {
+    try {
+        const userLogsPath = path.join(process.cwd(), 'user_logs');
+        
+        // Check if directory exists
+        if (!fs.existsSync(userLogsPath)) {
+            return res.json({ participants: [] });
+        }
+        
+        const participants = fs.readdirSync(userLogsPath)
+            .filter(item => {
+                const itemPath = path.join(userLogsPath, item);
+                return fs.statSync(itemPath).isDirectory();
+            })
+            .sort();
+        
+        res.json({ participants });
+    } catch (err) {
+        console.error("Error getting participants:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get all log files for a participant
+app.get("/api/logs/files/:participant", (req, res) => {
+    try {
+        const participant = req.params.participant;
+        const participantPath = path.join(process.cwd(), 'user_logs', participant);
+        
+        // Check if directory exists
+        if (!fs.existsSync(participantPath)) {
+            return res.status(404).json({ error: "Participant not found", files: [] });
+        }
+        
+        const files = fs.readdirSync(participantPath)
+            .filter(file => file.endsWith('.json'))
+            .map(file => path.join('user_logs', participant, file))
+            .sort();
+        
+        res.json({ files });
+    } catch (err) {
+        console.error(`Error getting files for participant ${req.params.participant}:`, err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get content of a log file
+app.get("/api/logs/content", (req, res) => {
+    try {
+        const filePath = req.query.file;
+        
+        if (!filePath) {
+            return res.status(400).json({ error: "Missing file parameter" });
+        }
+        
+        // Validate the path to prevent directory traversal attacks
+        const fullPath = path.join(process.cwd(), filePath);
+        const normalizedPath = path.normalize(fullPath);
+        
+        // Make sure the path is within the user_logs directory
+        if (!normalizedPath.startsWith(path.join(process.cwd(), 'user_logs'))) {
+            return res.status(403).json({ error: "Access denied" });
+        }
+        
+        // Check if file exists
+        if (!fs.existsSync(normalizedPath)) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        
+        // Read and parse JSON file
+        const content = fs.readFileSync(normalizedPath, 'utf8');
+        const data = JSON.parse(content);
+        
+        res.json(data);
+    } catch (err) {
+        console.error(`Error getting content of file ${req.query.file}:`, err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Print some DB stats on startup
 (async () => {
