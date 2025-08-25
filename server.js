@@ -21,9 +21,11 @@ app.get("/", (req, res) => {
 });
 
 // Logs browser route
+// Option A: Use sendFile instead of redirect
 app.get("/logs", (req, res) => {
-    res.redirect('/browse_logs.html');
+    res.sendFile(path.join(__dirname, 'public', 'browse_logs.html'));
 });
+
 
 // API data endpoint for the dashboard
 app.get("/api-data", async (req, res) => {
