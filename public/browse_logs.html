@@ -143,7 +143,7 @@
             currentFile = '';
             updateBreadcrumb();
             
-            fetch('/api/logs/participants')
+            fetch('api/logs/participants')
                 .then(response => response.json())
                 .then(data => {
                     const participantsList = document.getElementById('participants-list');
@@ -176,7 +176,7 @@
             currentParticipant = participant;
             updateBreadcrumb();
             
-            fetch(`/api/logs/files/${participant}`)
+            fetch(`api/logs/files/${participant}`)
                 .then(response => response.json())
                 .then(data => {
                     const filesContainer = document.getElementById('files-container');
@@ -211,7 +211,7 @@
             currentFile = filePath.split('/').pop();
             updateBreadcrumb();
             
-            fetch(`/api/logs/content?file=${filePath}`)
+            fetch(`api/logs/content?file=${filePath}`)
                 .then(response => response.json())
                 .then(data => {
                     const logContent = document.getElementById('log-content');
