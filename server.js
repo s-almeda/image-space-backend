@@ -1,44 +1,39 @@
-// server.js -- API-only backend for artographer data
+// server.js -- for logging.storing the user data while using artographer
 
 import express from "express";
 import cors from "cors";
 import dbPromise from "./database.js";
 import fs from "fs";
 import path from "path";
-// REMOVED: No longer need these for file serving
-// import { fileURLToPath } from 'url';
-// import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// REMOVED: No longer need __dirname for static files
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "500mb" }));
-
-// REMOVED: No longer serving static files
-// app.use(express.static('public'));
+app.use(express.static('public'));
 
 const port = process.env.PORT || 3001;
 
-// ============================================
-// REMOVED: Frontend routes - moved to Next.js
-// ============================================
-// app.get("/", (req, res) => {
-//     res.redirect('index.html');
-// });
+// Root route: show all users, user_images, pinned_artworks
+// Serve the dashboard HTML
+// Root route: redirect to dashboard
+app.get("/", (req, res) => {
+    res.redirect('index.html');
+});
 
-// app.get("/logs", (req, res) => {
-//     res.sendFile(path.join(__dirname, 'public', 'browse_logs.html'));
-// });
+// Logs browser route
+// Option A: Use sendFile instead of redirect
+app.get("/logs", (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'browse_logs.html'));
+});
 
-// ============================================
-// GENERAL PURPOSE USER DATA API ENDPOINTS -- DO NOT CHANGE
-// ============================================
 
-// Dashboard data endpoint
-app.get("/api-data", async (req, res) => {  // Keep as /api-data
+// API data endpoint for the dashboard
+app.get("/api-data", async (req, res) => {
     try {
         const db = await dbPromise;
         const users = await db.all("SELECT * FROM users");
@@ -51,7 +46,6 @@ app.get("/api-data", async (req, res) => {  // Keep as /api-data
         res.status(500).json({ error: err.message });
     }
 });
-
 /**
  * Add user
  */
@@ -193,7 +187,7 @@ app.post("/add-user-pin", async (req, res) => {
             artwork.regionId ?? null,
             artwork.isRepresentative ?? null,
             artwork.priority ?? null,
-            artwork.taskNumber ?? null
+            artwork.taskNumber ?? null  // Add this line
             ]
         );
 
@@ -395,9 +389,37 @@ app.get("/get-logs/:userId", async (req, res) => {
     }
 });
 
-// ============================================
-// Log browser endpoints (file system access)
-// ============================================
+/**
+ * Clear old logs (optional maintenance endpoint)
+ */
+// app.delete("/clear-old-logs", async (req, res) => {
+//     try {
+//         const { daysToKeep = 30 } = req.body;
+//         const db = await dbPromise;
+        
+//         const cutoffDate = new Date();
+//         cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+        
+//         const result = await db.run(
+//             `DELETE FROM user_logs WHERE timestamp < ?`,
+//             [cutoffDate.toISOString()]
+//         );
+        
+//         res.json({ 
+//             success: true, 
+//             message: `Deleted ${result.changes} old log entries` 
+//         });
+//     } catch (err) {
+//         console.error("Error clearing logs:", err);
+//         res.status(500).json({ error: err.message });
+//     }
+// });
+
+// === add new endpoints here ==== // 
+
+/**
+ * Log browser endpoints
+ */
 
 // Get all participants (directories in user_logs)
 app.get("/api/logs/participants", (req, res) => {
@@ -496,8 +518,7 @@ app.get("/api/logs/content", (req, res) => {
 
     app.listen(port, () => {
         console.log(`Server listening on port ${port}`);
-        console.log(`API-only backend running at http://localhost:${port}`);
-        console.log(`External API access: https://snailbunny.site/artographer-data/api/`);
+        console.log(`API available at http://localhost:${port} OR https://snailbunny.site/artographer-data/`);
     });
 })();
 
